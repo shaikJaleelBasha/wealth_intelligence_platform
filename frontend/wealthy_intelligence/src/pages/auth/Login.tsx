@@ -36,9 +36,16 @@ const Login = () => {
 
     try {
       const response = await authApi.post("/api/auth/login", formData);
+
       console.log("API RESPONSE:", response.data);
 
       const { user, profile, token } = response.data;
+
+      // SAVE TOKEN IN LOCAL STORAGE
+      localStorage.setItem("token", token);
+
+      console.log("TOKEN SAVED:", token);
+
       login(user, profile, token);
 
       if (user.role_name === "ADMIN") {
@@ -49,12 +56,14 @@ const Login = () => {
       }
     } catch (error) {
       console.log(error);
+
       const err = error as AxiosError<any>;
       const message = err.response?.data?.message;
+
       setErrorMessage(message || "Login failed");
     } finally {
-      loading && setLoading(false);
-    }
+      setLoading(false);
+    } 
   };
 
   return (
