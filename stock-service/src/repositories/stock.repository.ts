@@ -1,32 +1,51 @@
-import  pool  from "../config/db";
+import pool from "../config/db";
+
+/*
+|--------------------------------------------------------------------------
+| INSERT STOCK
+|--------------------------------------------------------------------------
+*/
 
 export const insertStock = async (data: any) => {
   const query = `
-    INSERT INTO stocks
-    (
-      symbol,
-      company_name,
-      exchange,
-      sector,
-      industry,
-      isin_number,
-      market_cap,
-      current_price,
-      is_active
-    )
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,true)
-    RETURNING *
-  `;
+      INSERT INTO stocks
+      (
+        symbol,
+        company_name,
+        exchange,
+        sector,
+        industry,
+        isin_number,
+        market_cap,
+        current_price,
+        available_quantity,
+        is_active
+      )
+      VALUES
+      (
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,true
+      )
+      RETURNING *
+    `;
 
   const values = [
     data.symbol,
+
     data.company_name,
+
     data.exchange,
+
     data.sector,
+
     data.industry,
+
     data.isin_number,
+
     data.market_cap,
+
     data.current_price,
+
+    data.available_quantity,
   ];
 
   const result = await pool.query(query, values);
@@ -34,41 +53,118 @@ export const insertStock = async (data: any) => {
   return result.rows[0];
 };
 
+/*
+|--------------------------------------------------------------------------
+| GET ALL STOCKS
+|--------------------------------------------------------------------------
+*/
+
 export const getAllStocks = async () => {
   const result = await pool.query(`
-    SELECT * FROM stocks
-    ORDER BY stock_id DESC
-  `);
+        SELECT *
+        FROM stocks
+        ORDER BY stock_id DESC
+      `);
 
   return result.rows;
 };
 
-export const updateStock = async (stockId: number, data: any) => {
-  const query = `
-    UPDATE stocks
-    SET
-      company_name=$1,
-      exchange=$2,
-      sector=$3,
-      industry=$4,
-      market_cap=$5,
-      current_price=$6,
-      updated_at=NOW()
-    WHERE stock_id=$7
-    RETURNING *
-  `;
 
-  const values = [
-    data.company_name,
-    data.exchange,
-    data.sector,
-    data.industry,
-    data.market_cap,
-    data.current_price,
-    stockId,
-  ];
+/*
+|--------------------------------------------------------------------------
+| UPDATE STOCK
+|--------------------------------------------------------------------------
+*/
 
-  const result = await pool.query(query, values);
+export const updateStock =
+  async (
+    stockId: number,
+    data: any
+  ) => {
+    /*
+    |--------------------------------------------------------------------------
+    | QUERY
+    |--------------------------------------------------------------------------
+    */
 
-  return result.rows[0];
-};
+    const query = `
+      UPDATE stocks
+      SET
+        symbol = $1,
+        company_name = $2,
+        exchange = $3,
+        sector = $4,
+        industry = $5,
+        isin_number = $6,
+        market_cap = $7,
+        current_price = $8,
+        available_quantity = $9,
+        updated_at = NOW()
+
+      WHERE stock_id = $10
+
+      RETURNING *
+    `;
+
+    /*
+    |--------------------------------------------------------------------------
+    | VALUES
+    |--------------------------------------------------------------------------
+    */
+
+    const values = [
+      data.symbol,
+
+      data.company_name,
+
+      data.exchange,
+
+      data.sector,
+
+      data.industry,
+
+      data.isin_number,
+
+      data.market_cap,
+
+      data.current_price,
+
+      data.available_quantity,
+
+      stockId,
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | EXECUTE
+    |--------------------------------------------------------------------------
+    */
+
+    const result =
+      await pool.query(
+        query,
+        values
+      );
+
+    /*
+    |--------------------------------------------------------------------------
+    | NOT FOUND
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+      result.rows.length === 0
+    ) {
+      throw new Error(
+        "Stock not found"
+      );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | RETURN
+    |--------------------------------------------------------------------------
+    */
+
+    return result.rows[0];
+  };

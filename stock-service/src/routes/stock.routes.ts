@@ -11,9 +11,13 @@ import {
 
 const router = express.Router();
 
+
 router.post("/create", authenticate, authorize("ADMIN"), addStock);
 
+
+
 router.get("/", authenticate, getStocks);
+
 
 router.put("/:stockId", authenticate, authorize("ADMIN"), updateStock);
 

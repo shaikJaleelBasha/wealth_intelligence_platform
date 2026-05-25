@@ -1,3 +1,4 @@
+
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/jwt";
@@ -256,10 +257,34 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+
+
+import { Request, Response } from "express";
+
+import bcrypt from "bcryptjs";
+
+import pool from "../config/db";
+
+import { generateToken } from "../utils/jwt";
+
+/*
+|--------------------------------------------------------------------------
+| REGISTER USER
+|--------------------------------------------------------------------------
+*/
+
 export const registerUser = async (req: Request, res: Response) => {
   const client = await pool.connect();
 
   try {
+    await client.query("BEGIN");
+
+    /*
+    |--------------------------------------------------------------------------
+    | REQUEST BODY
+    |--------------------------------------------------------------------------
+    */
+
     const {
       email,
       password,
@@ -269,12 +294,14 @@ export const registerUser = async (req: Request, res: Response) => {
       last_name,
       phone,
 
-      // investor fields
-      dob,
-      pan_number
+      city,
+      state,
+      country,
+
+      risk_profile,
     } = req.body;
 
-    console.log("Registration data received:", req.body);
+    console.log("Registration Data:", req.body);
 
     /*
     |--------------------------------------------------------------------------
@@ -285,7 +312,31 @@ export const registerUser = async (req: Request, res: Response) => {
     if (!email || !password || !role_name) {
       return res.status(400).json({
         success: false,
+
         message: "Required fields missing",
+      });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CHECK USER EXISTS
+    |--------------------------------------------------------------------------
+    */
+
+    const existingUser = await client.query(
+      `
+        SELECT *
+        FROM users
+        WHERE email = $1
+      `,
+      [email],
+    );
+
+    if (existingUser.rows.length > 0) {
+      return res.status(409).json({
+        success: false,
+
+        message: "Email already exists",
       });
     }
 
@@ -296,29 +347,6 @@ export const registerUser = async (req: Request, res: Response) => {
     */
 
     const normalizedRole = role_name.trim().toUpperCase();
-    console.log("Normalized role:", normalizedRole);
-
-    /*
-    |--------------------------------------------------------------------------
-    | CHECK EXISTING USER
-    |--------------------------------------------------------------------------
-    */
-
-    const existingUser = await client.query(
-      `
-        SELECT user_id
-        FROM users
-        WHERE email = $1
-      `,
-      [email],
-    );
-
-    if (existingUser.rows.length > 0) {
-      return res.status(409).json({
-        success: false,
-        message: "Email already exists",
-      });
-    }
 
     /*
     |--------------------------------------------------------------------------
@@ -335,18 +363,15 @@ export const registerUser = async (req: Request, res: Response) => {
       [normalizedRole],
     );
 
-    console.log("Role query result:", roleResult.rows);
-
     if (roleResult.rows.length === 0) {
       return res.status(400).json({
         success: false,
+
         message: "Invalid role",
       });
     }
 
     const roleData = roleResult.rows[0];
-
-    console.log("Role data fetched:", roleData);
 
     /*
     |--------------------------------------------------------------------------
@@ -358,30 +383,28 @@ export const registerUser = async (req: Request, res: Response) => {
 
     /*
     |--------------------------------------------------------------------------
-    | BEGIN TRANSACTION
-    |--------------------------------------------------------------------------
-    */
-
-    await client.query("BEGIN");
-
-    /*
-    |--------------------------------------------------------------------------
-    | INSERT USER
+    | CREATE USER
     |--------------------------------------------------------------------------
     */
 
     const userResult = await client.query(
       `
-        INSERT INTO users (
-
+        INSERT INTO users
+        (
           role_id,
           email,
-          password_hash
-
+          password_hash,
+          status,
+          created_at
         )
-
-        VALUES ($1, $2, $3)
-
+        VALUES
+        (
+          $1,
+          $2,
+          $3,
+          'ACTIVE',
+          NOW()
+        )
         RETURNING *
       `,
       [roleData.role_id, email, hashedPassword],
@@ -393,115 +416,153 @@ export const registerUser = async (req: Request, res: Response) => {
 
     /*
     |--------------------------------------------------------------------------
-    | INVESTOR PROFILE
+    | INVESTOR REGISTRATION
     |--------------------------------------------------------------------------
     */
 
     if (normalizedRole === "INVESTOR") {
+      /*
+      |--------------------------------------------------------------------------
+      | CREATE INVESTOR PROFILE
+      |--------------------------------------------------------------------------
+      */
+
       const investorResult = await client.query(
         `
-          INSERT INTO investors (
-
+          INSERT INTO investors
+          (
             user_id,
             first_name,
             last_name,
             phone,
-            dob,
-            pan_number
-
+            risk_profile,
+            kyc_status,
+            city,
+            state,
+            country,
+            created_at,
+            updated_at
           )
-
-          VALUES ($1, $2, $3, $4, $5, $6)
-
+          VALUES
+          (
+            $1,
+            $2,
+            $3,
+            $4,
+            $5,
+            'VERIFIED',
+            $6,
+            $7,
+            $8,
+            NOW(),
+            NOW()
+          )
           RETURNING *
         `,
         [
           user.user_id,
+
           first_name || null,
+
           last_name || null,
+
           phone || null,
-          dob || null,
-          pan_number || null,
+
+         risk_profile || "HIGH",
+
+          city || null,
+
+          state || null,
+
+          country || null,
         ],
       );
 
-      profileData = investorResult.rows[0];
+      const investor = investorResult.rows[0];
+
+      profileData = investor;
+
+      /*
+      |--------------------------------------------------------------------------
+      | AUTO CREATE PORTFOLIO
+      |--------------------------------------------------------------------------
+      */
+
+      await client.query(
+        `
+        INSERT INTO portfolios
+        (
+          investor_id,
+          portfolio_name,
+          portfolio_type,
+          total_investment,
+          current_value,
+          created_at,
+          updated_at
+        )
+        VALUES
+        (
+          $1,
+          'Primary Portfolio',
+          'LONG_TERM',
+          0,
+          0,
+          NOW(),
+          NOW()
+        )
+      `,
+        [investor.investor_id],
+      );
     } else if (normalizedRole === "ADMIN") {
 
     /*
     |--------------------------------------------------------------------------
-    | ADMIN PROFILE
+    | ADMIN REGISTRATION
     |--------------------------------------------------------------------------
     */
       const adminResult = await client.query(
         `
-          INSERT INTO admins (
-
+          INSERT INTO admins
+          (
             user_id,
             first_name,
             last_name,
             phone,
-            dob,
-            pan_number
-
+            department,
+            created_at
           )
-
-          VALUES ($1, $2, $3, $4, $5, $6)
-
+          VALUES
+          (
+            $1,
+            $2,
+            $3,
+            $4,
+            'STOCK_MANAGEMENT',
+            NOW()
+          )
           RETURNING *
         `,
-        [
-          user.user_id,
-          first_name || null,
-          last_name || null,
-          phone || null,
-          dob || null,
-          pan_number || null,
-        ],
+        [user.user_id, first_name || null, last_name || null, phone || null],
       );
 
       profileData = adminResult.rows[0];
-
-       console.log("Admin profile created:", profileData);
-
-
-    } else if (normalizedRole === "SUPPORT") {
+    }
 
     /*
     |--------------------------------------------------------------------------
-    | SUPPORT PROFILE
+    | GENERATE TOKEN
     |--------------------------------------------------------------------------
     */
-      const supportResult = await client.query(
-        `
-          INSERT INTO supports (
 
-            user_id,
-            first_name,
-            last_name,
-            phone,
-            dob,
-            pan_number
+    const token = generateToken({
+      user_id: user.user_id,
 
-          )
+      email: user.email,
 
-          VALUES ($1, $2, $3, $4, $5, $6)
+      role_id: user.role_id,
 
-          RETURNING *
-        `,
-        [
-          user.user_id,
-          first_name || null,
-          last_name || null,
-          phone || null,
-          dob || null,
-          pan_number || null,
-        ],
-      );
-
-      profileData = supportResult.rows[0];
-        console.log("Support profile created:", profileData);
-    }
+      role_name: normalizedRole,
+    });
 
     /*
     |--------------------------------------------------------------------------
@@ -511,18 +572,38 @@ export const registerUser = async (req: Request, res: Response) => {
 
     await client.query("COMMIT");
 
+    /*
+    |--------------------------------------------------------------------------
+    | RESPONSE
+    |--------------------------------------------------------------------------
+    */
+
     return res.status(201).json({
       success: true,
 
-      message: `${normalizedRole} registered successfully`,
+      message: "Registration Successful",
 
-      data: {
-        user,
+      token,
 
-        profile: profileData,
+      user: {
+        user_id: user.user_id,
+
+        email: user.email,
+
+        role_id: user.role_id,
+
+        role_name: normalizedRole,
       },
+
+      profile: profileData,
     });
-  } catch (error) {
+  } catch (error: any) {
+    /*
+    |--------------------------------------------------------------------------
+    | ROLLBACK
+    |--------------------------------------------------------------------------
+    */
+
     await client.query("ROLLBACK");
 
     console.log(error);
@@ -530,9 +611,11 @@ export const registerUser = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
 
-      message: "Internal server error",
+      message: error.message,
     });
   } finally {
     client.release();
   }
 };
+
+

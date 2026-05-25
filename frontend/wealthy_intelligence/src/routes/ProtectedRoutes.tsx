@@ -4,22 +4,23 @@ import { useAuth } from "../hooks/useAuth";
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  role?: string;
+  roles?: string[];
 }
 
-const ProtectedRoute = ({ children, role }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
   const { user } = useAuth();
 
-  // not logged in
+  // Not logged in
   if (!user) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
-  // FIX HERE 👇
+  // User role from backend
   const userRole = user.role_name;
 
-  if (role && userRole !== role) {
-    return <Navigate to="/login" />;
+  // Role check
+  if (roles && !roles.includes(userRole)) {
+    return <Navigate to="/login" replace />;
   }
 
   return children;

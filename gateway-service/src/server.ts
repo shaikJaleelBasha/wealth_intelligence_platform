@@ -99,7 +99,23 @@ app.use("/api/sips", createProxy(SERVICES.MUTUAL_FUNDS));
 */
 
 app.use("/api/stocks", createProxy(SERVICES.STOCKS));
+app.use(
+  "/api/transactions",
 
+  createProxy(SERVICES.STOCKS),
+);
+
+app.use(
+  "/api/holdings",
+
+  createProxy(SERVICES.STOCKS),
+);
+
+app.use(
+  "/api/portfolios",
+
+  createProxy(SERVICES.STOCKS),
+);
 /*
 |--------------------------------------------------------------------------
 | HEALTH CHECK
