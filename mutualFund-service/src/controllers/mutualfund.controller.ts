@@ -1,10 +1,20 @@
 import { Request, Response } from "express";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import * as fundService from "../services/mutualfund.service";
+import { cache } from "../utils/redis";
 
 export const getFunds = async (req: Request, res: Response) => {
   try {
+    const cacheKey = "mutualfunds:list";
+    const cachedFunds = await cache.get<any[]>(cacheKey);
+    if (cachedFunds) {
+      return res.status(200).json(cachedFunds);
+    }
+
     const funds = await fundService.getAllFunds();
+
+    await cache.set(cacheKey, funds, 300);
+
     return res.status(200).json(funds);
   } catch (error: any) {
     console.error("GET FUNDS ERROR:", error);
@@ -29,6 +39,9 @@ export const getFundHistory = async (req: Request, res: Response) => {
 export const addFund = async (req: AuthRequest, res: Response) => {
   try {
     const fund = await fundService.createFund(req.body);
+
+    await cache.del("mutualfunds:list");
+
     return res.status(201).json(fund);
   } catch (error: any) {
     console.error("ADD FUND ERROR:", error);
@@ -44,6 +57,9 @@ export const updateNav = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: "Invalid fund ID or NAV value" });
     }
     const fund = await fundService.updateFundNav(fundId, Number(nav));
+
+    await cache.del("mutualfunds:list");
+
     return res.status(200).json(fund);
   } catch (error: any) {
     console.error("UPDATE NAV ERROR:", error);
@@ -55,6 +71,9 @@ export const removeFund = async (req: AuthRequest, res: Response) => {
   try {
     const fundId = Number(req.params.fundId);
     await fundService.deleteFund(fundId);
+
+    await cache.del("mutualfunds:list");
+
     return res.status(200).json({ success: true, message: "Mutual fund deleted" });
   } catch (error: any) {
     console.error("DELETE FUND ERROR:", error);

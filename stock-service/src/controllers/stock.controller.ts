@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import pool from "../config/db";
 import * as stockService from "../services/stock.service";
+import { cache } from "../utils/redis";
 
 /*
 |--------------------------------------------------------------------------
@@ -11,6 +12,8 @@ import * as stockService from "../services/stock.service";
 export const addStock = async (req: Request, res: Response) => {
   try {
     const stock = await stockService.createStock(req.body);
+
+    await cache.del("stocks:list");
 
     return res.status(201).json(stock);
   } catch (error: any) {
@@ -30,7 +33,15 @@ export const addStock = async (req: Request, res: Response) => {
 
 export const getStocks = async (req: Request, res: Response) => {
   try {
+    const cacheKey = "stocks:list";
+    const cachedStocks = await cache.get<any[]>(cacheKey);
+    if (cachedStocks) {
+      return res.status(200).json(cachedStocks);
+    }
+
     const stocks = await stockService.fetchStocks();
+
+    await cache.set(cacheKey, stocks, 300);
 
     return res.status(200).json(stocks);
   } catch (error: any) {
@@ -54,6 +65,8 @@ export const updateStock = async (req: Request, res: Response) => {
       Number(req.params.stockId),
       req.body,
     );
+
+    await cache.del("stocks:list");
 
     return res.status(200).json(stock);
   } catch (error: any) {
@@ -151,6 +164,30 @@ export const clearOldHistory = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.log(error);
 
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+/*
+|--------------------------------------------------------------------------
+| DELETE STOCK listing
+|--------------------------------------------------------------------------
+*/
+export const deleteStock = async (req: Request, res: Response) => {
+  try {
+    const stockId = Number(req.params.stockId);
+    await pool.query("DELETE FROM stocks WHERE stock_id = $1", [stockId]);
+    
+    await cache.del("stocks:list");
+
+    return res.status(200).json({
+      success: true,
+      message: "Stock listing expunged successfully",
+    });
+  } catch (error: any) {
+    console.log("DELETE STOCK ERROR:", error);
     return res.status(500).json({
       message: error.message,
     });

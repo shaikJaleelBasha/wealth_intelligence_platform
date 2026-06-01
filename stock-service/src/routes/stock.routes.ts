@@ -8,6 +8,7 @@ import {
   getStockHistory,
   getStocks,
   updateStock,
+  deleteStock,
 } from "../controllers/stock.controller";
 
 const router = express.Router();
@@ -21,6 +22,8 @@ router.get("/", authenticate, getStocks);
 
 
 router.put("/:stockId", authenticate, authorize("ADMIN"), updateStock);
+
+router.delete("/:stockId", authenticate, authorize("ADMIN"), deleteStock);
 
 router.get("/:stockId/history", authenticate, getStockHistory);
 

@@ -79,6 +79,47 @@ The Wealth Intelligence Platform is structured as a robust multi-service monorep
 
 ---
 
+## ⚡ High-Performance Redis Caching Layer
+
+To optimize performance, lower database query latencies, and minimize transaction load on the Supabase instance, the Wealth Intelligence Platform integrates a distributed **Redis Caching Layer**.
+
+### Caching Architecture & Key Layout:
+
+1. **Stocks listings cache (`stocks:list`)**:
+   - Stores the complete list of available equity listings.
+   - **TTL (Time to Live)**: `300 seconds` (5 minutes).
+   - **Invalidation Triggers**: Instantly evicted (`DEL`) when an administrator registers a stock (`addStock`), modifies listing parameters (`updateStock`), or removes a listing (`deleteStock`).
+2. **Mutual Funds listings cache (`mutualfunds:list`)**:
+   - Stores the catalog of active mutual fund listings.
+   - **TTL**: `300 seconds` (5 minutes).
+   - **Invalidation Triggers**: Evicted on fund creation (`addFund`), NAV simulation adjustments (`updateNav`), or fund deletions (`removeFund`).
+3. **Gateway Requests telemetry logs cache (`admin:logs:list`)**:
+   - Caches the gateway requests audit feed. Since the admin diagnostics dashboard auto-refreshes every 5 seconds, caching this query for a short window prevents Supabase read congestion.
+   - **TTL**: `10 seconds`.
+   - **Invalidation Triggers**: Evicted whenever a new operational request is intercepted and logged by the API Gateway logging middleware.
+
+### 🛡️ Dual-Mode Connection Resilience & Fallback
+
+The caching utility is engineered with a **fail-safe dual-mode connection wrapper**. If a local Redis server is not active or reachable (e.g., during local development), the system automatically intercepts connection timeouts, logs a warning console prompt, and **gracefully falls back to a high-speed In-Memory cache store** utilizing the exact same caching API interface:
+
+```text
+⚠️ [CACHE] Redis connection failed on startup. Gracefully falling back to High-Speed In-Memory Cache.
+```
+
+This keeps development environments fully functional without any local Redis dependencies, while seamlessly activating high-performance Redis clustering when deployed to staging or production.
+
+### ⚙️ How to Configure and Access Redis Connection
+
+Caching behavior is controlled via environment variables in the `.env` configuration files of the **Gateway Service**, **Stock Service**, and **Mutual Fund Service**:
+
+* **Default Configuration**: If `REDIS_URL` is omitted, the client defaults to connecting to `redis://localhost:6379`.
+* **Custom Remote Redis / Cloud Clusters**: To point the services to a remote Redis cluster (such as Upstash, Redis Labs, or AWS ElastiCache), simply append the secure connection string in each `.env` file:
+  ```env
+  REDIS_URL=redis://default:YOUR_PASSWORD@YOUR_REDIS_ENDPOINT:PORT
+  ```
+
+---
+
 ## 🚀 Architectural Port Configuration
 
 All frontend requests route through the central **API Gateway** on port `4000`. The gateway interceptor decodes authorization headers, performs central HTTP request logging, and proxies requests to the appropriate microservice.

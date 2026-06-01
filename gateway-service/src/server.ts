@@ -3,6 +3,7 @@ import axios, { AxiosRequestConfig, Method } from "axios";
 import cors from "cors";
 import { Pool } from "pg";
 import dotenv from "dotenv";
+import { cache } from "./utils/redis";
 
 dotenv.config();
 
@@ -103,6 +104,8 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
         `,
         [req.method, req.originalUrl, statusCode, duration, ip, email, role]
       );
+      // Invalidate audit logs cache key since new log is recorded
+      await cache.del("admin:logs:list");
     } catch (err) {
       console.error("Failed to insert API log into Supabase:", err);
     }
@@ -181,6 +184,13 @@ app.get("/api/admin/logs", async (req: Request, res: Response) => {
       return res.status(403).json({ message: "Forbidden. Admin access required" });
     }
 
+    // Check Redis cache first
+    const cacheKey = "admin:logs:list";
+    const cachedLogs = await cache.get<any[]>(cacheKey);
+    if (cachedLogs) {
+      return res.status(200).json(cachedLogs);
+    }
+
     const result = await pool.query(
       `
       SELECT * 
@@ -189,6 +199,10 @@ app.get("/api/admin/logs", async (req: Request, res: Response) => {
       LIMIT 100
       `
     );
+
+    // Save to cache with 10 seconds TTL
+    await cache.set(cacheKey, result.rows, 10);
+
     return res.status(200).json(result.rows);
   } catch (error: any) {
     console.error("GET ADMIN LOGS ERROR:", error);
