@@ -34,6 +34,8 @@ const Login = () => {
     setErrorMessage("");
     setLoading(true);
 
+    console.log(formData);
+
     try {
       const response = await authApi.post("/api/auth/login", formData);
 

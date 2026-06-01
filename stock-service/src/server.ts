@@ -1,33 +1,88 @@
-import express from "express";
 import dotenv from "dotenv";
+
+import cron from "node-cron";
+
 import app from "./app";
+
 import pool from "./config/db";
 
+import { runMarketSimulation } from "./jobs/market.job";
+
+/*
+|--------------------------------------------------------------------------
+| CONFIG
+|--------------------------------------------------------------------------
+*/
+
 dotenv.config();
+
+/*
+|--------------------------------------------------------------------------
+| PORT
+|--------------------------------------------------------------------------
+*/
 
 const port = process.env.PORT || 5002;
 
-//start server by the creaing the pool connection which is config in the db.ts file and then create the users table in the database by calling the createUsersTable function from the dataBaseTableCreation.ts file
-
-dotenv.config();
+/*
+|--------------------------------------------------------------------------
+| START SERVER
+|--------------------------------------------------------------------------
+*/
 
 async function startServer() {
   try {
-    // ✔ just test connection (DO NOT CONNECT MANUALLY)
-    await pool.query("SELECT 1");
-    console.log("Database connected successfully");
+    /*
+    |--------------------------------------------------------------------------
+    | DATABASE CONNECTION TEST
+    |--------------------------------------------------------------------------
+    */
 
-    // ❌ REMOVE THESE IN PRODUCTION (Supabase handles schema)
-    // await createDatabase();
-    // await createUsersTable();
+    await pool.query("SELECT 1");
+
+    console.log("DATABASE CONNECTED SUCCESSFULLY");
+
+    /*
+    |--------------------------------------------------------------------------
+    | START EXPRESS SERVER
+    |--------------------------------------------------------------------------
+    */
 
     app.listen(port, () => {
-      console.log(`Server running on port ${port}`);
+      console.log(`SERVER RUNNING ON PORT ${port}`);
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | MARKET ENGINE
+    |--------------------------------------------------------------------------
+    |
+    | TESTING:
+    | Every 1 minute
+    |
+    | PRODUCTION:
+    | Use "0 0 * * *"
+    |--------------------------------------------------------------------------
+    */
+
+    cron.schedule("*/15 9-14 * * 1-5", async () => {
+      console.log("RUNNING MARKET ENGINE");
+
+      await runMarketSimulation();
+    });
+
+    console.log("MARKET ENGINE INITIALIZED");
   } catch (error) {
-    console.error("Startup error:", error);
+    console.error("STARTUP ERROR:", error);
+
     process.exit(1);
   }
 }
+
+/*
+|--------------------------------------------------------------------------
+| RUN SERVER
+|--------------------------------------------------------------------------
+*/
 
 startServer();

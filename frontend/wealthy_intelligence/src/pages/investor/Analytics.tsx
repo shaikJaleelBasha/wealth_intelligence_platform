@@ -1,16 +1,44 @@
 const Analytics = () => {
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Portfolio Analytics</h1>
+    <div className="grid grid-cols-4 gap-4">
+      {/* STOCKS */}
 
-      <div className="bg-white rounded-xl shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Portfolio Performance</h2>
+      <div className="bg-white shadow rounded-2xl p-5">
+        <p className="text-slate-400">Stocks</p>
 
-        <p>Total Investment: ₹5,00,000</p>
+        <h2 className="text-3xl font-bold">{stocks.length}</h2>
+      </div>
 
-        <p>Current Value: ₹6,40,000</p>
+      {/* HOLDINGS */}
 
-        <p className="text-green-600 font-bold mt-2">Profit: ₹1,40,000</p>
+      <div className="bg-white shadow rounded-2xl p-5">
+        <p className="text-slate-400">Holdings</p>
+
+        <h2 className="text-3xl font-bold">{holdings.length}</h2>
+      </div>
+
+      {/* TRANSACTIONS */}
+
+      <div className="bg-white shadow rounded-2xl p-5">
+        <p className="text-slate-400">Transactions</p>
+
+        <h2 className="text-3xl font-bold">{transactions.length}</h2>
+      </div>
+
+      {/* PORTFOLIO VALUE */}
+
+      <div className="bg-white shadow rounded-2xl p-5">
+        <p className="text-slate-400">Portfolio Value</p>
+
+        <h2 className="text-3xl font-bold text-green-600">
+          ₹
+          {holdings
+            .reduce(
+              (acc: number, item: any) => acc + Number(item.current_value),
+              0,
+            )
+            .toLocaleString()}
+        </h2>
       </div>
     </div>
   );

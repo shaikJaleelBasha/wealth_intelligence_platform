@@ -259,13 +259,6 @@ export const login = async (req: Request, res: Response) => {
 
 
 
-import { Request, Response } from "express";
-
-import bcrypt from "bcryptjs";
-
-import pool from "../config/db";
-
-import { generateToken } from "../utils/jwt";
 
 /*
 |--------------------------------------------------------------------------

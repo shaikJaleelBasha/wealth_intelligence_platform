@@ -5,7 +5,7 @@ import cors from "cors";
 import stockRoutes from "./routes/stock.routes";
 
 import transactionRoutes from "./routes/transaction.routes";
-
+import portfolioRoutes from "./routes/portfolio.routes";
 import holdingRoutes from "./routes/holding.routes";
 
 const app = express();
@@ -19,7 +19,7 @@ app.use(express.json());
 | ROUTES
 |--------------------------------------------------------------------------
 */
-
+app.use("/api/portfolios", portfolioRoutes);
 app.use("/api/stocks", stockRoutes);
 
 app.use("/api/transactions", transactionRoutes);

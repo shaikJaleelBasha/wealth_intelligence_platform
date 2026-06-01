@@ -4,8 +4,6 @@ import axios, { AxiosRequestConfig, Method } from "axios";
 
 import cors from "cors";
 
-
-
 const app = express();
 
 app.use(cors());
@@ -15,11 +13,11 @@ app.use(express.json());
 app.use(
   cors({
     origin: "*",
-  })
+  }),
 );
 
-
-const API = "http://192.168.29.241:4000";
+// const API = "http://192.168.29.241:4000";
+const API = "http://10.142.21.156:4000";
 
 /*
 |--------------------------------------------------------------------------

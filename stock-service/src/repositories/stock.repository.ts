@@ -1,5 +1,12 @@
 import pool from "../config/db";
 
+import { PoolClient } from "pg";
+
+
+
+
+
+
 /*
 |--------------------------------------------------------------------------
 | INSERT STOCK
@@ -50,8 +57,38 @@ export const insertStock = async (data: any) => {
 
   const result = await pool.query(query, values);
 
+  /*
+    |--------------------------------------------------------------------------
+    | CREATE INITIAL GRAPH HISTORY
+    |--------------------------------------------------------------------------
+    */
+
+  await pool.query(
+    `
+      INSERT INTO stock_price_history
+      (
+        stock_id,
+        price,
+        change_amount,
+        change_percentage,
+        created_at
+      )
+      VALUES
+      (
+        $1,
+        $2,
+        0,
+        0,
+        NOW()
+      )
+    `,
+    [result.rows[0].stock_id, data.current_price],
+  );
+
   return result.rows[0];
 };
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -59,112 +96,229 @@ export const insertStock = async (data: any) => {
 |--------------------------------------------------------------------------
 */
 
+// export const getAllStocks = async () => {
+//   const result = await pool.query(`
+//         SELECT
+//           s.*,
+
+//           COALESCE(
+//             (
+//               SELECT
+//                 change_amount
+
+//               FROM stock_price_history
+
+//               WHERE stock_id =
+//                     s.stock_id
+
+//               ORDER BY created_at DESC
+
+//               LIMIT 1
+//             ),
+//             0
+//           ) AS change_amount,
+
+//           COALESCE(
+//             (
+//               SELECT
+//                 change_percentage
+
+//               FROM stock_price_history
+
+//               WHERE stock_id =
+//                     s.stock_id
+
+//               ORDER BY created_at DESC
+
+//               LIMIT 1
+//             ),
+//             0
+//           ) AS change_percentage
+
+//         FROM stocks s
+
+//         ORDER BY stock_id DESC
+//       `);
+
+//       console.log(result.rows);
+
+//   return result.rows;
+// };
 export const getAllStocks = async () => {
   const result = await pool.query(`
-        SELECT *
-        FROM stocks
-        ORDER BY stock_id DESC
-      `);
+    SELECT
+      s.*,
+
+      COALESCE(
+      (
+        SELECT change_amount
+        FROM stock_price_history
+        WHERE stock_id = s.stock_id
+        ORDER BY created_at DESC
+        LIMIT 1
+      ),
+      0
+      ) AS change_amount,
+
+      COALESCE(
+      (
+        SELECT change_percentage
+        FROM stock_price_history
+        WHERE stock_id = s.stock_id
+        ORDER BY created_at DESC
+        LIMIT 1
+      ),
+      0
+      ) AS change_percentage
+
+    FROM stocks s
+
+    ORDER BY stock_id DESC
+  `);
 
   return result.rows;
 };
-
-
 /*
 |--------------------------------------------------------------------------
 | UPDATE STOCK
 |--------------------------------------------------------------------------
 */
 
-export const updateStock =
-  async (
-    stockId: number,
-    data: any
-  ) => {
-    /*
-    |--------------------------------------------------------------------------
-    | QUERY
-    |--------------------------------------------------------------------------
-    */
-
-    const query = `
+export const updateStock = async (stockId: number, data: any) => {
+  const query = `
       UPDATE stocks
       SET
-        symbol = $1,
-        company_name = $2,
-        exchange = $3,
-        sector = $4,
-        industry = $5,
-        isin_number = $6,
-        market_cap = $7,
-        current_price = $8,
-        available_quantity = $9,
+        company_name = $1,
+
+        exchange = $2,
+
+        sector = $3,
+
+        industry = $4,
+
+        market_cap = $5,
+
+        current_price = $6,
+
+        available_quantity = $7,
+
         updated_at = NOW()
 
-      WHERE stock_id = $10
+      WHERE stock_id = $8
 
       RETURNING *
     `;
 
-    /*
-    |--------------------------------------------------------------------------
-    | VALUES
-    |--------------------------------------------------------------------------
-    */
+  const values = [
+    data.company_name,
 
-    const values = [
-      data.symbol,
+    data.exchange,
 
-      data.company_name,
+    data.sector,
 
-      data.exchange,
+    data.industry,
 
-      data.sector,
+    data.market_cap,
 
-      data.industry,
+    data.current_price,
 
-      data.isin_number,
+    data.available_quantity,
 
-      data.market_cap,
+    stockId,
+  ];
 
-      data.current_price,
+  const result = await pool.query(query, values);
 
-      data.available_quantity,
+  return result.rows[0];
+};
 
-      stockId,
-    ];
+/*
+|--------------------------------------------------------------------------
+| DELETE STOCK
+|--------------------------------------------------------------------------
+*/
 
-    /*
-    |--------------------------------------------------------------------------
-    | EXECUTE
-    |--------------------------------------------------------------------------
-    */
+export const deleteStock = async (stockId: number) => {
+  await pool.query(
+    `
+      DELETE FROM stocks
+      WHERE stock_id = $1
+    `,
+    [stockId],
+  );
+};
 
-    const result =
-      await pool.query(
-        query,
-        values
-      );
+/*
+|--------------------------------------------------------------------------
+| GET STOCK BY ISIN
+|--------------------------------------------------------------------------
+*/
 
-    /*
-    |--------------------------------------------------------------------------
-    | NOT FOUND
-    |--------------------------------------------------------------------------
-    */
+export const getStockByIsin = async (
+  client: PoolClient,
+  isinNumber: string,
+) => {
+  const result = await client.query(
+    `
+        SELECT *
+        FROM stocks
+        WHERE isin_number = $1
+      `,
+    [isinNumber],
+  );
 
-    if (
-      result.rows.length === 0
-    ) {
-      throw new Error(
-        "Stock not found"
-      );
-    }
+  return result.rows[0];
+};
 
-    /*
-    |--------------------------------------------------------------------------
-    | RETURN
-    |--------------------------------------------------------------------------
-    */
+/*
+|--------------------------------------------------------------------------
+| REDUCE MARKET STOCK
+|--------------------------------------------------------------------------
+*/
 
-    return result.rows[0];
-  };
+export const reduceMarketStock = async (
+  client: PoolClient,
+  stockId: number,
+  quantity: number,
+) => {
+  await client.query(
+    `
+      UPDATE stocks
+      SET
+        available_quantity =
+          available_quantity - $1,
+
+        updated_at = NOW()
+
+      WHERE stock_id = $2
+    `,
+    [quantity, stockId],
+  );
+};
+
+/*
+|--------------------------------------------------------------------------
+| INCREASE MARKET STOCK
+|--------------------------------------------------------------------------
+*/
+
+
+export const increaseMarketStock = async (
+  client: PoolClient,
+  stockId: number,
+  quantity: number,
+) => {
+  await client.query(
+    `
+    UPDATE stocks
+    SET
+      available_quantity =
+        available_quantity + $1,
+
+      updated_at = NOW()
+
+    WHERE stock_id = $2
+    `,
+    [quantity, stockId],
+  );
+};

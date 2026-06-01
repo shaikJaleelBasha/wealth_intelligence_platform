@@ -5,6 +5,7 @@ import { authorize } from "../middlewares/role.middleware";
 
 import {
   addStock,
+  getStockHistory,
   getStocks,
   updateStock,
 } from "../controllers/stock.controller";
@@ -20,5 +21,7 @@ router.get("/", authenticate, getStocks);
 
 
 router.put("/:stockId", authenticate, authorize("ADMIN"), updateStock);
+
+router.get("/:stockId/history", authenticate, getStockHistory);
 
 export default router;
