@@ -2,6 +2,10 @@
 
 This handbook outlines the core API architecture, endpoints, and step-by-step test guidelines using **Postman**. It contains exact JSON payloads for all modules, allowing you to test authentication, portfolio holdings, stocks trading, mutual funds, systematic investment plans (SIP), gateway telemetry logging, and administrator controls.
 
+> [!TIP]
+> **⚡ High-Performance Redis Caching Layer Enabled!**
+> The platform now features distributed Redis caching across the API Gateway, Stocks, and Mutual Funds modules with a self-healing In-Memory fallback. Jump directly to the [High-Performance Redis Caching Layer](#-high-performance-redis-caching-layer) section for access details, connection setups, and default keys layout!
+
 ---
 
 ## 📸 Premium UI Dashboard Showcase

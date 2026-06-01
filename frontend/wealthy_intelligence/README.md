@@ -1,6 +1,11 @@
-# React + TypeScript + Vite
+# 💻 Wealth Intelligence Platform - Frontend Client Workspace
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This directory contains the state-of-the-art React/TypeScript frontend client built using premium dark-glass aesthetics, dynamic HSL glow backdrops, and interactive Recharts data panels.
+
+> [!NOTE]
+> For the complete microservices handbook, port configurations, and Redis caching setup, please refer to the [Root HandBook](../../README.md).
+
+---
 
 Currently, two official plugins are available:
 
