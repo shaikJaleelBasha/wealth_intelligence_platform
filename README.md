@@ -8,25 +8,51 @@ This handbook outlines the core API architecture, endpoints, and step-by-step te
 
 Witness the platform's state-of-the-art dark-glass financial terminal workspace:
 
-### 1. Unified Control Center (`Admin Dashboard`)
+### 👨‍💼 Administrator Workspace UI Showcase
+
+#### 1. Unified Control Center (`Admin Dashboard`)
 Real-time statistics counters, nested Mutual Funds and Stocks assets lists, and gateway proxy HTTP log feeds streaming in real-time.
 ![Admin Dashboard](screenshots/admin_dashboard.png)
 
-### 2. Manage Listed Securities (`Manage Stocks`)
+#### 2. Manage Listed Securities (`Manage Stocks`)
 Dark glassmorphism listings grid displaying symbols, ISINs, exchanges, available capital pools, and current prices. Includes in-place parameter adjustment modals.
 ![Manage Stocks](screenshots/manage_stocks.png)
 
-### 3. Live Market Price Controller (`Market Prices`)
+#### 3. Live Market Price Controller (`Market Prices`)
 Exposes live pricing inputs and commit actions. Features a **Market Volatility Simulation Engine** that triggers sequential price fluctuations (gains/losses) with live tick telemetry.
 ![Market Prices](screenshots/market_prices.png)
 
-### 4. Compliance Audits & KYC Registries (`Investors`)
+#### 4. Compliance Audits & KYC Registries (`Investors`)
 Central auditing console showcasing total active accounts, verified compliance ratios, location tracking, and an instant KYC suspension/approval pipeline.
 ![Investor Registry](screenshots/investor_registry.png)
 
-### 5. Diagnostics & System Latency Timeline (`Analytics`)
+#### 5. Diagnostics & System Latency Timeline (`Analytics`)
 Telemetry analytics deck tracking gateway latency timelines, HTTP methods PieChart allocations, successful response ratios, and critical bottleneck lists.
 ![System Analytics](screenshots/system_analytics.png)
+
+---
+
+### 👤 Investor Workspace UI Showcase
+
+#### 1. Consolidated Portfolio Dashboard (`Portfolio`)
+Consolidated portfolio view illustrating Net Investment value cards, Net absolute returns, and visual asset allocations (donuts & cost vs current bar-charts).
+![Investor Portfolio](screenshots/investor_portfolio.png)
+
+#### 2. Stocks Trading Center (`Stocks`)
+Exposes list of active stocks, high-fidelity Recharts performance trend graphs, order placement panel, and in-place position portfolios.
+![Investor Stocks](screenshots/investor_stocks.png)
+
+#### 3. Mutual Funds & Systematic Plans (`Mutual Funds`)
+Responsive interactive grid displaying Axis Small Cap, ICICI Prudential Liquid, Parag Parikh Flexi, and other premium funds with risk badges.
+![Investor Mutual Funds](screenshots/investor_mutual_funds.png)
+
+#### 4. Personal Cabinet & Profile Settings (`Profile Settings`)
+Enables verified investors to update risk tolerability profiles, residential details, and mobile contact settings instantly.
+![Investor Profile](screenshots/investor_profile.png)
+
+#### 5. Consolidated Order Logs (`Transactions`)
+Centralized transaction audit list detailing historical completed equity orders and mutual fund SIP payments.
+![Investor Transactions](screenshots/investor_transactions.png)
 
 ---
 
@@ -118,6 +144,7 @@ Test these endpoints to register and authenticate users. **Note down the `token`
   "risk_profile": "VERY HIGH"
 }
 ```
+* **Sample UI Screenshot**: [View Personal Cabinet & Profile Settings](screenshots/investor_profile.png)
 
 ---
 
@@ -129,11 +156,13 @@ Make sure to attach your investor JWT token as a **Bearer Token** in Postman's *
 * **HTTP Method**: `GET`
 * **Path**: `http://localhost:4000/api/stocks`
 * **Headers**: `Authorization: Bearer <TOKEN>`
+* **Sample UI Screenshot**: [View Stocks Trading Center](screenshots/investor_stocks.png)
 
 ### 2. Fetch Historical Stock Price Ticks
 * **HTTP Method**: `GET`
 * **Path**: `http://localhost:4000/api/stocks/1/history` (Replace `1` with an active `stock_id`)
 * **Headers**: `Authorization: Bearer <TOKEN>`
+* **Sample UI Screenshot**: [View Live Performance trend inside Stocks Trading Center](screenshots/investor_stocks.png)
 
 ### 3. Execute Stock Acquisition (Buy Order)
 * **HTTP Method**: `POST`
@@ -147,6 +176,7 @@ Make sure to attach your investor JWT token as a **Bearer Token** in Postman's *
   "price": 3850
 }
 ```
+* **Sample UI Screenshot**: [View Stocks Trading Center & Order Placement Console](screenshots/investor_stocks.png)
 
 ### 4. Execute Stock Liquidation (Sell Order)
 * **HTTP Method**: `POST`
@@ -160,16 +190,19 @@ Make sure to attach your investor JWT token as a **Bearer Token** in Postman's *
   "price": 3910
 }
 ```
+* **Sample UI Screenshot**: [View Stocks Trading Center & Order Placement Console](screenshots/investor_stocks.png)
 
 ### 5. Fetch Portfolio Holdings
 * **HTTP Method**: `GET`
 * **Path**: `http://localhost:4000/api/holdings`
 * **Headers**: `Authorization: Bearer <TOKEN>`
+* **Sample UI Screenshot**: [View Consolidated Portfolio Dashboard](screenshots/investor_portfolio.png)
 
 ### 6. Audit Signed Transactions Ledger
 * **HTTP Method**: `GET`
 * **Path**: `http://localhost:4000/api/transactions/history`
 * **Headers**: `Authorization: Bearer <TOKEN>`
+* **Sample UI Screenshot**: [View Consolidated Order Logs & Transaction History](screenshots/investor_transactions.png)
 
 ---
 
@@ -181,11 +214,13 @@ Invest, redeem, or schedule systematic installments for mutual funds.
 * **HTTP Method**: `GET`
 * **Path**: `http://localhost:4000/api/mutualfunds`
 * **Headers**: `Authorization: Bearer <TOKEN>`
+* **Sample UI Screenshot**: [View Mutual Funds & SIPs Catalog Grid](screenshots/investor_mutual_funds.png)
 
 ### 2. Fetch Mutual Fund NAV Chronological Trend
 * **HTTP Method**: `GET`
 * **Path**: `http://localhost:4000/api/mutualfunds/1/history` (Replace `1` with a `fund_id`)
 * **Headers**: `Authorization: Bearer <TOKEN>`
+* **Sample UI Screenshot**: [View Mutual Funds Grid](screenshots/investor_mutual_funds.png)
 
 ### 3. Acquire Mutual Fund Units (One-Time Lump Sum)
 * **HTTP Method**: `POST`
@@ -198,6 +233,7 @@ Invest, redeem, or schedule systematic installments for mutual funds.
   "amount": 50000
 }
 ```
+* **Sample UI Screenshot**: [View Mutual Funds Grid & Purchase Console](screenshots/investor_mutual_funds.png)
 
 ### 4. Redeem Mutual Fund Units (Sell)
 * **HTTP Method**: `POST`
@@ -210,6 +246,7 @@ Invest, redeem, or schedule systematic installments for mutual funds.
   "units": 15.42
 }
 ```
+* **Sample UI Screenshot**: [View Consolidated Portfolio Dashboard](screenshots/investor_portfolio.png)
 
 ### 5. Schedule a Systematic Investment Plan (SIP)
 * **HTTP Method**: `POST`
@@ -224,11 +261,13 @@ Invest, redeem, or schedule systematic installments for mutual funds.
   "start_date": "2026-06-15"
 }
 ```
+* **Sample UI Screenshot**: [View Mutual Funds Grid](screenshots/investor_mutual_funds.png)
 
 ### 6. Retrieve Investor's Active SIP list
 * **HTTP Method**: `GET`
 * **Path**: `http://localhost:4000/api/sips`
 * **Headers**: `Authorization: Bearer <TOKEN>`
+* **Sample UI Screenshot**: [View Consolidated Portfolio Dashboard](screenshots/investor_portfolio.png)
 
 ### 7. Pause, Resume, or Cancel a SIP Plan
 * **HTTP Method**: `PUT`
@@ -240,6 +279,7 @@ Invest, redeem, or schedule systematic installments for mutual funds.
   "status": "PAUSED" // Acceptable inputs: "ACTIVE", "PAUSED", "CANCELLED"
 }
 ```
+* **Sample UI Screenshot**: [View Consolidated Portfolio Dashboard](screenshots/investor_portfolio.png)
 
 ---
 
