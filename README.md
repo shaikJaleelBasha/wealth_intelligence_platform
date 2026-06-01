@@ -4,6 +4,32 @@ This handbook outlines the core API architecture, endpoints, and step-by-step te
 
 ---
 
+## 📸 Premium UI Dashboard Showcase
+
+Witness the platform's state-of-the-art dark-glass financial terminal workspace:
+
+### 1. Unified Control Center (`Admin Dashboard`)
+Real-time statistics counters, nested Mutual Funds and Stocks assets lists, and gateway proxy HTTP log feeds streaming in real-time.
+![Admin Dashboard](screenshots/admin_dashboard.png)
+
+### 2. Manage Listed Securities (`Manage Stocks`)
+Dark glassmorphism listings grid displaying symbols, ISINs, exchanges, available capital pools, and current prices. Includes in-place parameter adjustment modals.
+![Manage Stocks](screenshots/manage_stocks.png)
+
+### 3. Live Market Price Controller (`Market Prices`)
+Exposes live pricing inputs and commit actions. Features a **Market Volatility Simulation Engine** that triggers sequential price fluctuations (gains/losses) with live tick telemetry.
+![Market Prices](screenshots/market_prices.png)
+
+### 4. Compliance Audits & KYC Registries (`Investors`)
+Central auditing console showcasing total active accounts, verified compliance ratios, location tracking, and an instant KYC suspension/approval pipeline.
+![Investor Registry](screenshots/investor_registry.png)
+
+### 5. Diagnostics & System Latency Timeline (`Analytics`)
+Telemetry analytics deck tracking gateway latency timelines, HTTP methods PieChart allocations, successful response ratios, and critical bottleneck lists.
+![System Analytics](screenshots/system_analytics.png)
+
+---
+
 ## 🚀 Architectural Port Configuration
 
 All frontend requests route through the central **API Gateway** on port `4000`. The gateway interceptor decodes authorization headers, performs central HTTP request logging, and proxies requests to the appropriate microservice.
@@ -225,11 +251,13 @@ Invest, redeem, or schedule systematic installments for mutual funds.
 * **HTTP Method**: `GET`
 * **Path**: `http://localhost:4000/api/admin/logs`
 * **Headers**: `Authorization: Bearer <ADMIN_TOKEN>`
+* **Sample UI Screenshots**: [View Admin Dashboard & Gateway Logs](screenshots/admin_dashboard.png) • [View Infrastructure Diagnostics & System Latency](screenshots/system_analytics.png)
 
 ### 2. Fetch Active Investor Accounts Database
 * **HTTP Method**: `GET`
 * **Path**: `http://localhost:4000/api/investors`
 * **Headers**: `Authorization: Bearer <ADMIN_TOKEN>`
+* **Sample UI Screenshot**: [View Investor Compliance Registry](screenshots/investor_registry.png)
 
 ### 3. Update Investor KYC Verification status
 * **HTTP Method**: `PUT`
@@ -241,6 +269,7 @@ Invest, redeem, or schedule systematic installments for mutual funds.
   "kyc_status": "VERIFIED" // Acceptable inputs: "VERIFIED", "PENDING", "UNVERIFIED"
 }
 ```
+* **Sample UI Screenshot**: [View Investor Compliance Registry](screenshots/investor_registry.png)
 
 ### 4. Create Stock Listing (Admin Catalog Init)
 * **HTTP Method**: `POST`
@@ -260,6 +289,7 @@ Invest, redeem, or schedule systematic installments for mutual funds.
   "available_quantity": 7346938
 }
 ```
+* **Sample UI Screenshot**: [View Manage Stocks Grid](screenshots/manage_stocks.png)
 
 ### 5. Update Stock Price / Parameters
 * **HTTP Method**: `PUT`
@@ -274,11 +304,13 @@ Invest, redeem, or schedule systematic installments for mutual funds.
   "exchange": "NSE"
 }
 ```
+* **Sample UI Screenshot**: [View Live Pricing Ledger & Volatility Controller](screenshots/market_prices.png)
 
 ### 6. Expunge Security Listing (Delete)
 * **HTTP Method**: `DELETE`
 * **Path**: `http://localhost:4000/api/stocks/1` (Replace `1` with a `stock_id`)
 * **Headers**: `Authorization: Bearer <ADMIN_TOKEN>`
+* **Sample UI Screenshot**: [View Manage Stocks Grid](screenshots/manage_stocks.png)
 
 ---
 
