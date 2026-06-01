@@ -35,6 +35,7 @@ const ManageStocks = () => {
 
     try {
       await updateStock(selectedStock.stock_id, {
+        ...selectedStock,
         current_price: Number(editPrice),
         sector: editSector,
         industry: editIndustry,

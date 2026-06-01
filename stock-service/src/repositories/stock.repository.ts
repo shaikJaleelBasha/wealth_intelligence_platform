@@ -185,49 +185,67 @@ export const getAllStocks = async () => {
 */
 
 export const updateStock = async (stockId: number, data: any) => {
+  // 1. Get current stock price before update to compute history metrics
+  const oldStockResult = await pool.query("SELECT current_price FROM stocks WHERE stock_id = $1", [stockId]);
+  const oldPrice = oldStockResult.rows.length > 0 ? Number(oldStockResult.rows[0].current_price) : 0;
+  const newPrice = Number(data.current_price);
+
+  // 2. Perform the stock details update
   const query = `
       UPDATE stocks
       SET
         company_name = $1,
-
         exchange = $2,
-
         sector = $3,
-
         industry = $4,
-
         market_cap = $5,
-
         current_price = $6,
-
         available_quantity = $7,
-
         updated_at = NOW()
-
       WHERE stock_id = $8
-
       RETURNING *
     `;
 
   const values = [
     data.company_name,
-
     data.exchange,
-
     data.sector,
-
     data.industry,
-
     data.market_cap,
-
-    data.current_price,
-
+    newPrice,
     data.available_quantity,
-
     stockId,
   ];
 
   const result = await pool.query(query, values);
+
+  // 3. Create price history point and cascade update holdings if price changed
+  if (oldPrice !== newPrice) {
+    const changeAmount = newPrice - oldPrice;
+    const changePercentage = oldPrice > 0 ? ((changeAmount / oldPrice) * 100).toFixed(2) : "0.00";
+
+    await pool.query(
+      `
+      INSERT INTO stock_price_history (stock_id, price, change_amount, change_percentage, created_at)
+      VALUES ($1, $2, $3, $4, NOW())
+      `,
+      [stockId, newPrice, changeAmount, changePercentage]
+    );
+
+    // 4. Update the investor holdings table so P&L details show in real-time
+    await pool.query(
+      `
+      UPDATE holdings
+      SET
+        current_market_price = $1,
+        current_value = quantity * $1,
+        unrealized_profit = (quantity * $1) - total_invested,
+        last_updated = NOW()
+      WHERE asset_type = 'STOCK' AND asset_id = $2
+      `,
+      [newPrice, stockId]
+    );
+  }
 
   return result.rows[0];
 };
