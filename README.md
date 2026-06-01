@@ -56,6 +56,29 @@ Centralized transaction audit list detailing historical completed equity orders 
 
 ---
 
+## 🏗️ High-Level System Architecture
+
+The Wealth Intelligence Platform is structured as a robust multi-service monorepo. All frontend client requests feed into a centralized API Gateway which intercepts tokens, handles rate limits, writes system audit trails, and proxies requests to designated stock, auth, or mutual funds engine services.
+
+### System Architecture Diagram
+![System Architecture Diagram](screenshots/architecture.png)
+
+### Key Architectural Layers:
+1. **API Gateway (Express Proxy Interceptor)**:
+   - Evaluates JWT credentials & checks Role-Based Access Control (RBAC).
+   - Async-persists HTTP operational metadata logs in the database.
+   - Proxies backend communications.
+2. **Stock & Holding Service**:
+   - Manages active index stocks catalog and order execution ledgers.
+   - Computes investor holdings distributions, valuations, and cost splits.
+3. **Mutual Fund & SIP Service**:
+   - Manages NAV charts performance trends.
+   - Runs the daily Systematic Investment Plan (SIP) automated execution chron jobs.
+4. **PostgreSQL (Unified Supabase Instance)**:
+   - Core relational registry storing user models, active stock price ticks, transactions histories, and operational telemetry logs.
+
+---
+
 ## 🚀 Architectural Port Configuration
 
 All frontend requests route through the central **API Gateway** on port `4000`. The gateway interceptor decodes authorization headers, performs central HTTP request logging, and proxies requests to the appropriate microservice.
