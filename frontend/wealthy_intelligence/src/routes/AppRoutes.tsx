@@ -42,6 +42,7 @@ import InvestorAnalytics from "../pages/investor/Analytics";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import ProtectedRoute from "./ProtectedRoutes";
 import Stocks from "../pages/investor/Stocks";
+import ProfilePage from "../pages/auth/ProfilePage";
 
 const AppRoutes = () => {
   return (
@@ -127,6 +128,15 @@ const AppRoutes = () => {
             }
           />
 
+          <Route
+            path="/admin/profile"
+            element={
+              <ProtectedRoute roles={["ADMIN"]}>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+
           {/* ================= INVESTOR ROUTES ================= */}
 
           <Route
@@ -197,6 +207,15 @@ const AppRoutes = () => {
             element={
               <ProtectedRoute roles={["INVESTOR"]}>
                 <InvestorAnalytics />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/investor/profile"
+            element={
+              <ProtectedRoute roles={["INVESTOR"]}>
+                <ProfilePage />
               </ProtectedRoute>
             }
           />

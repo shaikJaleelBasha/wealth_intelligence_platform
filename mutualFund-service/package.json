@@ -1,29 +1,28 @@
 {
-  "name": "gateway-service",
+  "name": "mutual-fund-service",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Mutual Fund and SIP Service for Wealth Intelligence Platform",
+  "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn src/server.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "@types/pg": "^8.20.0",
     "axios": "^1.16.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "node-cron": "^4.2.1",
     "pg": "^8.21.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.9.1",
+    "@types/pg": "^8.20.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^6.0.3"
   }

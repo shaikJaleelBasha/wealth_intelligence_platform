@@ -1,6 +1,7 @@
 
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { generateToken } from "../utils/jwt";
 import pool from "../config/db";
 
@@ -606,6 +607,124 @@ export const registerUser = async (req: Request, res: Response) => {
 
       message: error.message,
     });
+  } finally {
+    client.release();
+  }
+};
+
+export const updateProfile = async (req: Request, res: Response) => {
+  const client = await pool.connect();
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ message: "Token missing" });
+    }
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+    const userId = decoded.user_id;
+    const roleName = decoded.role_name;
+
+    await client.query("BEGIN");
+
+    let updatedProfile = null;
+    if (roleName === "INVESTOR") {
+      const { first_name, last_name, phone, address, city, state, country, risk_profile } = req.body;
+      const result = await client.query(
+        `
+        UPDATE investors 
+        SET first_name = $1, last_name = $2, phone = $3, address = $4, city = $5, state = $6, country = $7, risk_profile = $8, updated_at = NOW()
+        WHERE user_id = $9
+        RETURNING *
+        `,
+        [first_name, last_name, phone, address, city, state, country, risk_profile, userId]
+      );
+      updatedProfile = result.rows[0];
+    } else if (roleName === "ADMIN") {
+      const { first_name, last_name, phone, department } = req.body;
+      const result = await client.query(
+        `
+        UPDATE admins 
+        SET first_name = $1, last_name = $2, phone = $3, department = $4
+        WHERE user_id = $5
+        RETURNING *
+        `,
+        [first_name, last_name, phone, department, userId]
+      );
+      updatedProfile = result.rows[0];
+    }
+
+    await client.query("COMMIT");
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      profile: updatedProfile
+    });
+  } catch (error: any) {
+    await client.query("ROLLBACK");
+    console.error("UPDATE PROFILE ERROR:", error);
+    return res.status(500).json({ message: error.message || "Failed to update profile" });
+  } finally {
+    client.release();
+  }
+};
+
+export const getInvestors = async (req: Request, res: Response) => {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(`
+      SELECT 
+        i.investor_id,
+        i.user_id,
+        i.first_name,
+        i.last_name,
+        i.phone,
+        i.risk_profile,
+        i.kyc_status,
+        i.city,
+        i.state,
+        i.country,
+        i.created_at,
+        u.email,
+        u.status
+      FROM investors i
+      JOIN users u ON i.user_id = u.user_id
+      ORDER BY i.created_at DESC
+    `);
+    return res.status(200).json(result.rows);
+  } catch (error: any) {
+    console.error("GET INVESTORS ERROR:", error);
+    return res.status(500).json({ message: error.message || "Failed to fetch investors" });
+  } finally {
+    client.release();
+  }
+};
+
+export const updateKyc = async (req: Request, res: Response) => {
+  const client = await pool.connect();
+  try {
+    const { investorId } = req.params;
+    const { kyc_status } = req.body;
+    const result = await client.query(
+      `
+      UPDATE investors
+      SET kyc_status = $1, updated_at = NOW()
+      WHERE investor_id = $2
+      RETURNING *
+      `,
+      [kyc_status, investorId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Investor not found" });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "KYC status updated successfully",
+      investor: result.rows[0]
+    });
+  } catch (error: any) {
+    console.error("UPDATE KYC ERROR:", error);
+    return res.status(500).json({ message: error.message || "Failed to update KYC status" });
   } finally {
     client.release();
   }

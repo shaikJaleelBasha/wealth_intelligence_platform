@@ -8,18 +8,20 @@ export interface User {
 }
 
 export interface Profile {
-  investor_id: string;
+  investor_id?: string;
+  admin_id?: string;
   user_id: string;
   first_name: string;
   last_name: string;
   phone: string;
-  dob: string | null;
-  risk_profile: string;
-  kyc_status: string;
-  address: string | null;
-  city: string;
-  state: string;
-  country: string;
+  dob?: string | null;
+  risk_profile?: string;
+  kyc_status?: string;
+  address?: string | null;
+  city?: string;
+  state?: string;
+  country?: string;
+  department?: string;
 }
 
 export interface AuthContextType {

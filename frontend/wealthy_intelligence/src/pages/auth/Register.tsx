@@ -3,6 +3,7 @@ import type { ChangeEvent, FormEvent } from "react";
 import api from "../../api/axios";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Shield, Sparkles, Mail, Lock, Eye, EyeOff, Loader2, CheckCircle2, User, Phone, Calendar, Landmark, TrendingUp } from "lucide-react";
 
 interface FormData {
   email: string;
@@ -16,7 +17,6 @@ interface FormData {
 }
 
 const Register = () => {
-
   const navigate = useNavigate(); 
   const [formData, setFormData] = useState<FormData>({
     email: "",
@@ -30,6 +30,9 @@ const Register = () => {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -42,317 +45,316 @@ const Register = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
 
     try {
-      const response = await api.post("/api/auth/register", formData);
-      console.log(response.data);
-      navigate("/login");
-      alert("Registered Successfully");
+      await api.post("/api/auth/register", formData);
+      setSuccessMsg("Onboarding Registration Successful! Redirecting to login...");
+      setTimeout(() => {
+        navigate("/login");
+      }, 2500);
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        alert(error.response?.data?.message || "Registration Failed");
-        console.log(error.response?.data);
+        setErrorMsg(error.response?.data?.message || "Registration Failed. Check fields.");
       } else {
-        alert("Something went wrong");
-        console.log(error);
+        setErrorMsg("Something went wrong. Please try again.");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[#F8FAFC] font-sans selection:bg-slate-900 selection:text-white text-slate-800">
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-between font-sans selection:bg-indigo-500/30 selection:text-white text-slate-100 relative overflow-hidden">
+      {/* Glow backgrounds */}
+      <div className="absolute top-[-150px] right-[-100px] w-[600px] h-[600px] bg-indigo-600/10 blur-[130px] rounded-full pointer-events-none z-0" />
+      <div className="absolute bottom-[-150px] left-[-100px] w-[600px] h-[600px] bg-violet-600/10 blur-[130px] rounded-full pointer-events-none z-0" />
+
       {/* Global Header */}
-      <header className="w-full bg-white px-6 py-4 md:px-12 flex justify-between items-center border-b border-slate-100">
-        <div className="flex items-center gap-1.5 font-bold text-lg text-slate-900 tracking-tight">
-          <span>WealthMatrix</span>
+      <header className="w-full bg-slate-900/40 backdrop-blur-md px-6 py-4 md:px-12 flex justify-between items-center border-b border-slate-900/60 z-10">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg">
+            <Shield className="w-4.5 h-4.5 text-white" />
+          </div>
+          <span className="text-lg font-black tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+            WealthAI
+          </span>
         </div>
-        <div className="text-xs md:text-sm text-slate-500">
-          Already have an account?{" "}
+        <div className="text-xs md:text-sm text-slate-400">
+          Already have credentials?{" "}
           <a
             href="/login"
-            className="text-slate-900 font-bold hover:underline transition"
+            className="text-indigo-400 font-extrabold hover:text-indigo-300 transition hover:underline"
           >
-            Log In
+            Sign In
           </a>
         </div>
       </header>
 
       {/* Main Content Container */}
-      <main className="flex-grow flex items-center justify-center p-4 md:p-8">
-        <div className="flex w-full max-w-[1120px] min-h-[680px] bg-white rounded-xl shadow-md border border-slate-200/60 overflow-hidden">
+      <main className="flex-grow flex items-center justify-center p-4 md:p-8 z-10">
+        <div className="flex w-full max-w-[1120px] min-h-[640px] bg-slate-900/30 backdrop-blur-xl border border-slate-800/80 rounded-3xl overflow-hidden shadow-2xl">
+          
           {/* Left Panel: Feature Highlights */}
-          <div className="hidden lg:flex flex-col justify-between w-[40%] bg-[#0B1320] p-8 text-white relative">
-            <div className="space-y-6 z-10">
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold tracking-tight text-slate-100">
-                  Unified Wealth Intelligence
+          <div className="hidden lg:flex flex-col justify-between w-[40%] bg-slate-950 p-8 text-white relative border-r border-slate-800/60">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-25" />
+            
+            <div className="space-y-6 z-10 relative">
+              <div className="space-y-2 pl-2">
+                <div className="flex items-center gap-1.5 text-indigo-400 text-xs font-semibold mb-1">
+                  <Sparkles className="w-4 h-4 animate-pulse" />
+                  <span>Onboarding Portal</span>
+                </div>
+                <h2 className="text-2xl font-black text-white tracking-tight">
+                  Unified Intelligence.
                 </h2>
                 <p className="text-xs text-slate-400 leading-relaxed max-w-xs">
-                  Empowering global investors with precision data and
-                  institutional-grade tools.
+                  Empowering private and corporate investors with unified market access and institutional-grade analytics.
                 </p>
               </div>
 
               {/* Feature 1 */}
-              <div className="flex items-start gap-4">
-                <div className="p-2 bg-slate-800/60 border border-slate-700/50 rounded-lg text-slate-300">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                    />
-                  </svg>
+              <div className="flex items-start gap-4 p-3 bg-slate-900/40 rounded-2xl border border-slate-800/50">
+                <div className="p-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl">
+                  <TrendingUp className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-semibold text-slate-200">
-                    Real-time Analytics
+                  <h4 className="text-xs font-bold text-slate-200">
+                    Real-time Market Analytics
                   </h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
-                    Monitor market shifts and portfolio performance with
-                    millisecond latency.
+                  <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                    Stream market data points, historical NAV points, and live transaction execution values with millisecond response latency.
                   </p>
                 </div>
               </div>
 
               {/* Feature 2 */}
-              <div className="flex items-start gap-4">
-                <div className="p-2 bg-slate-800/60 border border-slate-700/50 rounded-lg text-slate-300">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
+              <div className="flex items-start gap-4 p-3 bg-slate-900/40 rounded-2xl border border-slate-800/50">
+                <div className="p-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl">
+                  <Lock className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-semibold text-slate-200">
-                    Secure Asset Management
+                  <h4 className="text-xs font-bold text-slate-200">
+                    Secure Cryptographic Cabinet
                   </h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
-                    Multi-layer encryption and biometric security for your
-                    digital wealth.
+                  <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                    Industry-grade secure JWT encryption and password hashes to protect private wealth indices.
                   </p>
                 </div>
               </div>
 
               {/* Feature 3 */}
-              <div className="flex items-start gap-4">
-                <div className="p-2 bg-slate-800/60 border border-slate-700/50 rounded-lg text-slate-300">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                    />
-                  </svg>
+              <div className="flex items-start gap-4 p-3 bg-slate-900/40 rounded-2xl border border-slate-800/50">
+                <div className="p-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl">
+                  <Landmark className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-semibold text-slate-200">
-                    Institutional Access
+                  <h4 className="text-xs font-bold text-slate-200">
+                    SIP & Alternate Markets Access
                   </h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
-                    Unlock private markets and alternative assets usually
-                    reserved for the elite.
+                  <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                    Unlock private equity networks, alternate index markets, and systematic SIP allocations in one consolidated portfolio.
                   </p>
                 </div>
               </div>
             </div>
-
-            {/* Embedded laptop mockup representation */}
-            <div className="mt-6 relative rounded-lg overflow-hidden border border-slate-800">
-              <img
-                src="https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=500&q=80"
-                alt="Analytics Presentation"
-                className="w-full aspect-[4/3] object-cover opacity-80 mix-blend-luminosity hover:mix-blend-normal transition duration-500"
-              />
-            </div>
           </div>
 
-          {/* Right Panel: Scrollable Registration Form */}
-          <div className="w-full lg:w-[60%] p-6 sm:p-10 md:p-12 overflow-y-auto flex items-center bg-white">
+          {/* Right Panel: Registration Form */}
+          <div className="w-full lg:w-[60%] p-6 sm:p-10 md:p-12 overflow-y-auto flex items-center bg-slate-900/40">
             <div className="w-full max-w-xl mx-auto space-y-6">
               <div>
-                <span className="inline-block px-2 py-0.5 text-[10px] font-bold bg-[#00F294]/20 text-[#008752] rounded uppercase tracking-wider mb-2">
-                  {formData.role_name} Role
+                <span className="inline-block px-2.5 py-0.5 text-[9px] font-bold bg-indigo-500/10 text-indigo-400 rounded border border-indigo-500/20 uppercase tracking-wider mb-2">
+                  {formData.role_name} Registration Mode
                 </span>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-                  Create your {formData.role_name} account
+                <h1 className="text-3xl font-black text-white tracking-tight">
+                  Create Credentials
                 </h1>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Complete the professional onboarding to begin your wealth
-                  journey.
+                <p className="text-xs text-slate-400 mt-1">
+                  Submit the onboarding form below to list your portfolio in the secure registry.
                 </p>
               </div>
+
+              {successMsg && (
+                <div className="flex items-center gap-3 bg-emerald-500/10 text-emerald-450 border border-emerald-500/20 p-4 rounded-2xl text-xs animate-pulse font-semibold">
+                  <CheckCircle2 className="w-4.5 h-4.5 shrink-0 text-emerald-400" />
+                  <span>{successMsg}</span>
+                </div>
+              )}
+
+              {errorMsg && (
+                <div className="flex items-center gap-3 bg-red-500/10 text-red-450 border border-red-500/20 p-4 rounded-2xl text-xs font-semibold">
+                  <Shield className="w-4.5 h-4.5 shrink-0 text-red-400" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* First Name & Last Name Group */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wide">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                       First Name
                     </label>
-                    <input
-                      type="text"
-                      name="first_name"
-                      placeholder="Enter first name"
-                      value={formData.first_name}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md outline-none focus:border-slate-900 transition text-slate-900 placeholder:text-slate-400"
-                      required
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600">
+                        <User className="w-3.5 h-3.5" />
+                      </span>
+                      <input
+                        type="text"
+                        name="first_name"
+                        placeholder="John"
+                        value={formData.first_name}
+                        onChange={handleChange}
+                        className="w-full pl-9 pr-3 py-2 text-xs bg-slate-950/40 border border-slate-800 focus:border-indigo-500 rounded-xl outline-none text-white font-medium"
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wide">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                       Last Name
                     </label>
-                    <input
-                      type="text"
-                      name="last_name"
-                      placeholder="Enter last name"
-                      value={formData.last_name}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md outline-none focus:border-slate-900 transition text-slate-900 placeholder:text-slate-400"
-                      required
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600">
+                        <User className="w-3.5 h-3.5" />
+                      </span>
+                      <input
+                        type="text"
+                        name="last_name"
+                        placeholder="Doe"
+                        value={formData.last_name}
+                        onChange={handleChange}
+                        className="w-full pl-9 pr-3 py-2 text-xs bg-slate-950/40 border border-slate-800 focus:border-indigo-500 rounded-xl outline-none text-white font-medium"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 
                 {/* Email Field */}
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wide">
-                    Professional Email Address
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    Onboarding Email Address
                   </label>
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="name@company.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md outline-none focus:border-slate-900 transition text-slate-900 placeholder:text-slate-400"
-                    required
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600">
+                      <Mail className="w-3.5 h-3.5" />
+                    </span>
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="name@wealthai.com"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="w-full pl-9 pr-3 py-2 text-xs bg-slate-950/40 border border-slate-800 focus:border-indigo-500 rounded-xl outline-none text-white font-medium"
+                      required
+                    />
+                  </div>
                 </div>
 
                 {/* Mobile Phone & PAN Number Group */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wide">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                       Mobile Phone
                     </label>
-                    <input
-                      type="text"
-                      name="phone"
-                      placeholder="+1 (555) 000-0000"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md outline-none focus:border-slate-900 transition text-slate-900 placeholder:text-slate-400"
-                      required
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600">
+                        <Phone className="w-3.5 h-3.5" />
+                      </span>
+                      <input
+                        type="text"
+                        name="phone"
+                        placeholder="+91 99999 99999"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        className="w-full pl-9 pr-3 py-2 text-xs bg-slate-950/40 border border-slate-800 focus:border-indigo-500 rounded-xl outline-none text-white font-medium"
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wide">
-                      PAN Number
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      PAN Identifier
                     </label>
-                    <input
-                      type="text"
-                      name="pan_number"
-                      placeholder="ABCDE1234F"
-                      value={formData.pan_number}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md outline-none focus:border-slate-900 transition text-slate-900 placeholder:text-slate-400 uppercase"
-                      required
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600">
+                        <Shield className="w-3.5 h-3.5" />
+                      </span>
+                      <input
+                        type="text"
+                        name="pan_number"
+                        placeholder="ABCDE1234F"
+                        value={formData.pan_number}
+                        onChange={handleChange}
+                        className="w-full pl-9 pr-3 py-2 text-xs bg-slate-950/40 border border-slate-800 focus:border-indigo-500 rounded-xl outline-none text-white uppercase font-bold"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 
                 {/* Date of Birth & Password Group */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wide">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                       Date of Birth
                     </label>
-                    <input
-                      type="date"
-                      name="dob"
-                      value={formData.dob}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md outline-none focus:border-slate-900 transition text-slate-900 cursor-pointer"
-                      required
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600">
+                        <Calendar className="w-3.5 h-3.5" />
+                      </span>
+                      <input
+                        type="date"
+                        name="dob"
+                        value={formData.dob}
+                        onChange={handleChange}
+                        className="w-full pl-9 pr-3 py-2 text-xs bg-slate-950/40 border border-slate-800 focus:border-indigo-500 rounded-xl outline-none text-white cursor-pointer font-medium"
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wide">
-                      Secure Password
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      Secure Access Password
                     </label>
                     <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600">
+                        <Lock className="w-3.5 h-3.5" />
+                      </span>
                       <input
                         type={showPassword ? "text" : "password"}
                         name="password"
-                        placeholder="••••••••"
+                        placeholder="••••••••••••"
                         value={formData.password}
                         onChange={handleChange}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md outline-none focus:border-slate-900 transition text-slate-900 placeholder:text-slate-400"
+                        className="w-full pl-9 pr-10 py-2 text-xs bg-slate-950/40 border border-slate-800 focus:border-indigo-500 rounded-xl outline-none text-white font-bold tracking-widest font-mono"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-350 transition"
                       >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Role Switcher Option (Preserved cleanly from your code structure) */}
+                {/* Role Switcher */}
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wide">
-                    Account Access Role
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    Onboarding Platform Role
                   </label>
                   <select
                     name="role_name"
                     value={formData.role_name}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-md outline-none focus:border-slate-900 transition text-slate-900 cursor-pointer capitalize"
+                    className="w-full bg-slate-950/40 border border-slate-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-xs text-slate-200 cursor-pointer capitalize outline-none"
                   >
                     <option value="investor">Investor</option>
                     <option value="admin">Admin</option>
@@ -360,60 +362,50 @@ const Register = () => {
                   </select>
                 </div>
 
-                {/* Disclaimer Checkbox */}
+                {/* Terms checkbox */}
                 <div className="flex items-start gap-2.5 pt-1">
                   <input
                     type="checkbox"
                     id="terms"
                     required
-                    className="mt-0.5 w-4 h-4 rounded border-slate-300 accent-slate-900 cursor-pointer"
+                    className="mt-0.5 w-4 h-4 rounded border-slate-800 bg-slate-950 focus:ring-0 accent-indigo-650 cursor-pointer"
                   />
                   <label
                     htmlFor="terms"
-                    className="text-[11px] text-slate-500 leading-normal select-none cursor-pointer"
+                    className="text-[10px] text-slate-500 leading-normal select-none cursor-pointer"
                   >
-                    I agree to the{" "}
-                    <span className="text-slate-900 font-semibold underline">
-                      Terms of Service
-                    </span>{" "}
-                    and{" "}
-                    <span className="text-slate-900 font-semibold underline">
-                      Privacy Policy
-                    </span>
-                    . I understand that WealthMatrix maintains strict compliance
-                    with international financial regulations.
+                    I agree to the <span className="text-indigo-400 font-bold hover:underline">Terms of Service</span> and <span className="text-indigo-400 font-bold hover:underline">Privacy Policy</span>. I understand that WealthAI maintains strict compliance with financial auditing regulations.
                   </label>
                 </div>
 
-                {/* Submit Button */}
+                {/* Submit Action */}
                 <button
                   type="submit"
-                  className="w-full bg-[#111827] text-white py-2.5 rounded-md font-semibold text-xs uppercase tracking-wider hover:bg-slate-800 transition active:scale-[0.99] mt-2"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-650/15 transition-all hover:scale-[1.01] text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 mt-4 disabled:opacity-75"
                 >
-                  Register Account
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Registering Credentials...
+                    </>
+                  ) : (
+                    <span>Register Account</span>
+                  )}
                 </button>
               </form>
-
-             
-              
             </div>
           </div>
         </div>
       </main>
 
       {/* Global Footer */}
-      <footer className="w-full bg-white border-t border-slate-100 px-6 py-4 md:px-12 flex flex-col sm:flex-row gap-2 justify-between items-center text-[11px] text-slate-400">
-        <div>© 2026 WealthMatrix Institutional. All rights reserved.</div>
-        <div className="flex gap-4 font-medium text-slate-500">
-          <a href="#security" className="hover:text-slate-900 transition">
-            Security
-          </a>
-          <a href="#compliance" className="hover:text-slate-900 transition">
-            Compliance
-          </a>
-          <a href="#help" className="hover:text-slate-900 transition">
-            Help Center
-          </a>
+      <footer className="w-full bg-slate-950 border-t border-slate-900/60 px-6 py-4 md:px-12 flex flex-col sm:flex-row gap-2 justify-between items-center text-[10px] text-slate-500 z-10">
+        <div>© 2026 WealthAI Institutional private wealth. All rights reserved.</div>
+        <div className="flex gap-4 font-bold text-slate-450">
+          <a href="#security" className="hover:text-white transition">Security Compliance</a>
+          <a href="#compliance" className="hover:text-white transition">Regulatory Disclosures</a>
+          <a href="#help" className="hover:text-white transition">Help Desk</a>
         </div>
       </footer>
     </div>
